@@ -1,0 +1,24 @@
+# Example configuration for a fake SSH server
+
+# SSH server port (default: 2222)
+port: 2222
+
+# Logging settings
+log:
+  # Path to log file (default: credentials.log)
+  # Use "stdout" for console output
+  file: "credentials.log"
+  # Log format: "json" or "pretty" (default: "json")
+  format: "json"
+
+# SSH server banner (default: "Ubuntu-4ubuntu0.5")
+banner: "Ubuntu-4ubuntu0.5"
+
+# SSH server version (default: "OpenSSH_8.2p1")
+server_version: "OpenSSH_8.2p1"
+
+# Path to SSH private key (default: empty, uses built-in key)
+private_key_path: ""
+
+# Generate new key on each run (default: true)
+# If false, either built-in key or specified in private_key_path will be used 

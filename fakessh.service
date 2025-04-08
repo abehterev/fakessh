@@ -1,0 +1,20 @@
+[Unit]
+Description=Fake SSH Server
+After=docker.service
+Requires=docker.service
+Documentation=https://github.com/fakessh
+
+[Service]
+Restart=always
+RestartSec=5
+ExecStartPre=-/usr/bin/docker stop fakessh
+ExecStartPre=-/usr/bin/docker rm fakessh
+ExecStart=/usr/bin/docker run --rm --name fakessh \
+    -p 2222:2222 \
+    --log-driver=journald \
+    --log-opt tag=fakessh \
+    fakessh:latest
+ExecStop=/usr/bin/docker stop fakessh
+
+[Install]
+WantedBy=multi-user.target 

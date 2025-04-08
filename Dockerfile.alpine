@@ -1,0 +1,52 @@
+FROM golang:1.23-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies for build
+RUN apk add --no-cache git
+
+# Copy go.mod and go.sum
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN go build -ldflags="-s -w" -o /app/build/fakessh ./cmd/fakessh
+
+# Final image
+FROM alpine:3.15
+
+# Set timezone and install basic packages
+RUN apk add --no-cache tzdata ca-certificates
+
+# Create unprivileged user
+RUN addgroup -S fakessh && \
+    adduser -S -G fakessh -h /app fakessh && \
+    mkdir -p /app/keys /app/logs
+
+# Copy the executable from builder
+COPY --from=builder /app/build/fakessh /app/fakessh
+
+# Copy pre-installed SSH key (if any)
+COPY --from=builder /app/keys/ /app/keys/
+
+# Set environment variables
+ENV FAKESSH_PORT=2222 \
+    FAKESSH_LOG_FILE=stdout \
+    FAKESSH_LOG_FORMAT=json \
+    FAKESSH_BANNER="Ubuntu-4ubuntu0.5" \
+    FAKESSH_SERVER_VERSION="OpenSSH_8.2p1" \
+    FAKESSH_GENERATE_KEY=false
+
+# Switch to unprivileged user
+USER fakessh
+
+# Expose SSH port
+EXPOSE 2222
+
+# Start SSH server with logs to stdout and fixed key
+ENTRYPOINT ["/app/fakessh", "--generate-key=false"] 
