@@ -52,6 +52,29 @@ jobs:
           file: ./Dockerfile.alpine
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          labels: |
+            ${{ steps.meta.outputs.labels }}
+            org.opencontainers.image.description=Fake SSH server for credential harvesting
+            org.opencontainers.image.licenses=MIT
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
           cache-from: type=gha
-          cache-to: type=gha,mode=max 
+          cache-to: type=gha,mode=max
+      
+      - name: Update package visibility
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.repository }}
+          PKG_NAME: fakessh
+        run: |
+          # Получаем название пакета из имени репозитория
+          PKG_NAME=$(echo "$REPO" | cut -d'/' -f2)
+          
+          # Устанавливаем публичную видимость для пакета
+          echo "Установка публичной видимости для $PKG_NAME"
+          curl -X PATCH \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/user/packages/container/$PKG_NAME/versions \
+            -d '{"visibility":"public"}' 
