@@ -26,13 +26,10 @@ RUN apk add --no-cache tzdata ca-certificates
 # Create unprivileged user
 RUN addgroup -S fakessh && \
     adduser -S -G fakessh -h /app fakessh && \
-    mkdir -p /app/keys /app/logs
+    mkdir -p /app/logs
 
 # Copy the executable from builder
 COPY --from=builder /app/build/fakessh /app/fakessh
-
-# Copy pre-installed SSH key (if any)
-COPY --from=builder /app/keys/ /app/keys/
 
 # Set environment variables
 ENV FAKESSH_PORT=2222 \
